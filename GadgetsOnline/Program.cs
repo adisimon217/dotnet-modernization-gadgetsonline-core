@@ -1,34 +1,71 @@
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using GadgetsOnline.Models;
-using System.IO;
+using GadgetsOnline.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
-namespace GadgetsOnline
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
+    Args = args,
+    ContentRootPath = Directory.GetCurrentDirectory(),
+    WebRootPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")
+});
 
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+// Add services to the container
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(1);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseContentRoot(Directory.GetCurrentDirectory());
-                    webBuilder.UseWebRoot(Path.Combine(AppContext.BaseDirectory, "wwwroot"));
-                    webBuilder.UseStartup<Startup>();
-                });
-    }
+builder.Services.AddControllersWithViews();
 
+builder.Services.AddDbContext<GadgetsOnlineEntities>(opt =>
+{
+    opt.UseSqlite(builder.Configuration.GetConnectionString(nameof(GadgetsOnlineEntities)));
+});
 
+// Seed data
+using (var context = new GadgetsOnlineEntities(builder.Configuration.GetConnectionString(nameof(GadgetsOnlineEntities))))
+{
+    context.Database.EnsureCreated();
+    context.SaveChanges();
+}
+
+builder.Services.AddScoped<IInventory, Inventory>();
+builder.Services.AddScoped<IShoppingCart, ShoppingCart>();
+builder.Services.AddScoped<IOrderProcessing, OrderProcessing>();
+
+// Store configuration for legacy access
+ConfigurationManager.Configuration = builder.Configuration;
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthorization();
+app.UseSession();
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.Run();
+
+public class ConfigurationManager
+{
+    public static IConfiguration Configuration { get; set; }
 }
