@@ -42,7 +42,7 @@ namespace GadgetsOnline
             services.AddControllersWithViews();
             services.AddDbContext<GadgetsOnlineEntities>(opt =>
             {
-                opt.UseSqlServer(Configuration.GetConnectionString(nameof(GadgetsOnlineEntities)));
+                opt.UseSqlite(Configuration.GetConnectionString(nameof(GadgetsOnlineEntities)));
             });
 
             // seed data

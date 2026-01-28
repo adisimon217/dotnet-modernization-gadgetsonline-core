@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
 using GadgetsOnline.Models;
 using GadgetsOnline.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -29,17 +28,20 @@ namespace GadgetsOnline.Controllers
         }
 
         // GET: Checkout
+        [HttpGet]
         public ActionResult AddressAndPayment()
         {
             return View();
         }
 
         [HttpPost]
-        public ActionResult AddressAndPayment(FormCollection values)
+        public async System.Threading.Tasks.Task<ActionResult> AddressAndPayment(Order order)
         {
-            var order = new Order();
             /* Added by CTA: This updated method might require the parameters to be re-organized */
-            TryUpdateModelAsync(order);
+            if (!ModelState.IsValid)
+            {
+                return View(order);
+            }
             try
             {
                 order.Username = "Anonymous";

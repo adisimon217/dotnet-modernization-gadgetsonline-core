@@ -26,10 +26,10 @@ namespace GadgetsOnline.Models
         public DbSet<OrderDetail> OrderDetails { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        { /* Use Configuration from static ConfigurationManager to access connection string in appsettings.json. Example below: optionsBuilder.UseSqlServer(ConfigurationManager.Configuration.GetConnectionString("CONNECTIONSTRINGNAME")); */
+        { /* Use Configuration from static ConfigurationManager to access connection string in appsettings.json. Example below: optionsBuilder.UseSqlite(ConfigurationManager.Configuration.GetConnectionString("CONNECTIONSTRINGNAME")); */
             if (!string.IsNullOrWhiteSpace(_dbConn))
             {
-                optionsBuilder.UseSqlServer(_dbConn);
+                optionsBuilder.UseSqlite(_dbConn);
             }
             else
             {
